@@ -6,19 +6,33 @@
 # added conversion of los.rdr.geo to .grd for loading into CSI EJF 2014/2/16
 # this version requires GIAnT so has to run in Python 2.x
 # renamed to "unw2grd.py" EJF 2015/03/05
+# modified to check Python version and ISCE version EJF 2015/03/09
+
+from __future__ import print_function
 
 import numpy as np
 import os
 import sys
+
+if sys.version_info[0] > 2:
+    sys.stderr.write('This version only works with Python 2\n')
+    exit(1)
+
 import isce
 from iscesys.Parsers.FileParserFactory import createFileParser
-from iscesys.ImageApi import DataAccessor as DA
+try:
+    from iscesys.ImageApi import DataAccessor as DA
+except:
+    sys.stderr.write('This version requires Python 2 ISCE DataAcessor ImageApi\n')
+    exit(1)
+
 from isceobj.Util import key_of_same_content
 import math
 import cmath as c
 import tsinsar as ts 
 
 import lxml.objectify as OB
+
 
 # CSK wavelength hard-coded, but updated below from insarProc.xml if available
 wavelength = 0.0312283810417
@@ -112,13 +126,13 @@ if os.path.exists(name):
     phs.tofile(name + '.phs')
 
     command = 'xyz2grd ' + name + '.phs ' + '-R' + str(startLon) + '/' + str(endLon) + '/' + str(endLat) + '/' + str(startLat) + ' -I' + str(width) + '+/' + str(length) + '+ -ZTLf -N0.0 -G' + name + '.grd -V'
-    print command
+    print (command)
     os.system(command)
     command = 'grdmath ' + name + '.grd ' + str((wavelength/(4 *Pi))) + ' MUL = ' + name + '.math.grd'
-    print command
+    print (command)
     os.system(command)
     command = 'grdtrend ' + name + '.math.grd' + ' -N1 -D'+ name + '.math-N1.grd '
-    print command
+    print (command)
     os.system(command)
 
 # los vector angles
@@ -128,7 +142,7 @@ los1 = ts.load_mmap(los, width, length, quiet=True, map='BIL', nchannels=2, chan
 #los1[los1 == 0]= np.nan
 los1.tofile('los_inc.flt')
 command = 'xyz2grd ' + 'los_inc.flt ' + '-R' + str(startLon) + '/' + str(endLon) + '/' + str(endLat) + '/' + str(startLat) + ' -I' + str(width) + '+/' + str(length) + '+ -ZTLf -N0.0 -G' + 'los_inc.grd -V'
-print command
+print (command)
 os.system(command)
 
 # second band is LOS direction in "math" convention degrees
@@ -140,7 +154,7 @@ azim.tofile('los_azim.flt')
 head=azim-90.0
 head.tofile('los_head.flt')
 command = 'xyz2grd ' + 'los_head.flt ' + '-R' + str(startLon) + '/' + str(endLon) + '/' + str(endLat) + '/' + str(startLat) + ' -I' + str(width) + '+/' + str(length) + '+ -ZTLf -N90.0 -G' + 'los_head.grd -V'
-print command
+print (command)
 os.system(command)
 
 # now dealing with the DEM 
@@ -156,7 +170,7 @@ for kk in xrange(length):
 
 #DEM GMT command
 command = 'xyz2grd ' + Dfile + ' ' + '-R' + str(startLon) + '/' + str(endLon) + '/' + str(endLat) + '/' + str(startLat) + ' -I' + str(width) + '+/' + str(length) + '+ -ZTLf -N0.0 -Gdem.grd -V'
-print command
+print (command)
 os.system(command)
 
 # now masked phase
@@ -169,13 +183,13 @@ if os.path.exists(nameM):
     phsM.tofile(nameM + '.phs')
 
     command = 'xyz2grd ' + nameM + '.phs ' + '-R' + str(startLon) + '/' + str(endLon) + '/' + str(endLat) + '/' + str(startLat) + ' -I' + str(width) + '+/' + str(length) + '+ -ZTLf -N0.0 -G' + nameM + '.grd -V'
-    print command
+    print (command)
     os.system(command)
     command = 'grdmath ' + nameM + '.grd ' + str((wavelength/(4 *Pi))) + ' MUL = ' + nameM + '.math.grd'
-    print command
+    print (command)
     os.system(command)
     command = 'grdtrend ' + nameM + '.math.grd' + ' -N1 -D'+ nameM + '.math-N1.grd '
-    print command
+    print (command)
     os.system(command)
 
 
