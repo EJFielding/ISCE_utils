@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # projects a deformation model ENU on a grid to SAR LOS
 # started 2015/03/17 Eric J. Fielding, JPL
 # modified from code in Unofficial_ISCE_Guide.pdf
-# This version is for Python 2
+# modified pickle from Python 2 to Python 3, might still work with Python 2
 
 ###Our usual import statements
 import numpy as np
@@ -15,9 +15,12 @@ import argparse
 ####from an insarApp run
 def load_pickle(step='topo'):
     '''Loads the pickle from topo step as default.'''
-    import cPickle
+    try:
+        import cPickle as pickle # python 2
+    except:
+        import pickle  # python 3
     
-    insarObj = cPickle.load(open('PICKLE/{0}'.format(step),'rb'))
+    insarObj = pickle.load(open('PICKLE/{0}'.format(step),'rb'))
     return insarObj
 
 
